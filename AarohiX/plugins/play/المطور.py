@@ -5,34 +5,12 @@ from AarohiX import app
 import config
 
 @app.on_message(
-    command(["اوامر", "الاوامر"])
-)
-async def mmmezat(client, message):
-    await message.reply_text(
-        f"""مرحبًا بك عزيزي {message.from_user.mention} في قسم مميزات سورس cr ميوزك\nهنا تكتب الاوامر """,
-        reply_markup=InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "- المطور .", url=f"tg://openmessage?user_id={config.OWNER_ID}"
-                    ),
-                ],
-                [
-                    InlineKeyboardButton(
-                        "- مسح .", callback_data="close"
-                    ),
-                ],
-            ]
-        ),
-    )
-
-@app.on_message(
     command(["المطور", "السورس", "المصنع"])
 )
 async def maker(client: Client, message: Message):
-    await message.reply_photo(
-        photo="https://te.legra.ph/file/08cec0a2a844713e1624a.jpg",
-        caption="~ Team freedom \n~ Dav Source",
+    await message.reply_video(
+        video="https://telegra.ph/file/9ccdf1b81efa30d2adb53.mp4",
+        caption="• Dev Bot ↦ تيتو\n━━━━━━━━━━━━\n• Dev ↦  AhmedTeto . \n• Bio ↦ ضع القياده لنا وتمتع بالطريق @T_S_T4",
         reply_markup=InlineKeyboardMarkup(
             [
                 [
@@ -48,3 +26,4 @@ async def maker(client: Client, message: Message):
             ]
         ),
     )
+    
