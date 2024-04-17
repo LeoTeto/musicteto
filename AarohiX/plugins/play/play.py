@@ -23,42 +23,13 @@ from AarohiX.utils.inline import (
 from AarohiX.utils.logger import play_logs
 from AarohiX.utils.stream.stream import stream
 from config import BANNED_USERS, lyrical
-from pyrogram.errors import UserNotParticipant, ChatAdminRequired
-from config import Muntazer
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-async def must_join_channel(app, msg):
-    if not Muntazer:
-        return
-    try:
-        try:
-            await app.get_chat_member(Muntazer, msg.from_user.id)
-        except UserNotParticipant:
-            if Muntazer.isalpha():
-                link = "https://t.me/" + Muntazer
-            else:
-                chat_info = await app.get_chat(Muntazer)
-                link = chat_info.invite_link
-            try:
-                await msg.reply(
-                    f"~︙عليك الأشتراك في قناة البوت \n~︙قناة البوت : @{Muntazer}.",
-                    disable_web_page_preview=True,
-                    reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton("< Source Plus >", url=link)]
-                    ])
-                )
-                await msg.stop_propagation()
-            except ChatWriteForbidden:
-                pass
-    except ChatAdminRequired:
-        print(f"I m not admin in the MUST_JOIN chat {Muntazer}!")
 
-# استخدام دالة must_join_channel في دالة التشغيل المخصصة
 @app.on_message(
     command(
         [
             "تشغيل",
-            "شغل",
+            "فيديو",
             "cplay",
             "cvplay",
             "playforce",
@@ -81,9 +52,6 @@ async def play_commnd(
     url,
     fplay,
 ):
-    # التحقق من اشتراك المستخدم في القناة المطلوبة
-    await must_join_channel(client, message)
-    
     mystic = await message.reply_text(
         _["play_2"].format(channel) if channel else _["play_1"]
     )
@@ -136,7 +104,51 @@ async def play_commnd(
                     forceplay=fplay,
                 )
             except Exception as e:
-                ex_type = type(e).name
+                ex_type = type(e).__name__
+                err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
+                return await mystic.edit_text(err)
+            return await mystic.delete()
+        return
+    elif video_telegram:
+        if message.reply_to_message.document:
+            try:
+                ext = video_telegram.file_name.split(".")[-1]
+                if ext.lower() not in formats:
+                    return await mystic.edit_text(
+                        _["play_7"].format(f"{' | '.join(formats)}")
+                    )
+            except:
+                return await mystic.edit_text(
+                    _["play_7"].format(f"{' | '.join(formats)}")
+                )
+        if video_telegram.file_size > config.TG_VIDEO_FILESIZE_LIMIT:
+            return await mystic.edit_text(_["play_8"])
+        file_path = await Telegram.get_filepath(video=video_telegram)
+        if await Telegram.download(_, message, mystic, file_path):
+            message_link = await Telegram.get_link(message)
+            file_name = await Telegram.get_filename(video_telegram)
+            dur = await Telegram.get_duration(video_telegram, file_path)
+            details = {
+                "title": file_name,
+                "link": message_link,
+                "path": file_path,
+                "dur": dur,
+            }
+            try:
+                await stream(
+                    _,
+                    mystic,
+                    user_id,
+                    details,
+                    chat_id,
+                    user_name,
+                    message.chat.id,
+                    video=True,
+                    streamtype="telegram",
+                    forceplay=fplay,
+                )
+            except Exception as e:
+                ex_type = type(e).__name__
                 err = e if ex_type == "AssistantErr" else _["general_2"].format(ex_type)
                 return await mystic.edit_text(err)
             return await mystic.delete()
